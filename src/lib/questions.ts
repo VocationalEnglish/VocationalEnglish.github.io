@@ -1,6 +1,7 @@
 import { patternQuestions } from "./questions/patterns";
 import { coreQuestions } from "./questions/core";
 import { structureQuestions } from "./questions/structures";
+import { FIELD_QUESTIONS } from "./questions/fields";
 import { SKILL_IDS, type Question, type SkillId } from "./types";
 
 export const QUESTIONS: Question[] = [
@@ -24,7 +25,9 @@ export const PLACEMENT_IDS = [
   "wo-02",
 ] as const;
 
-const byId = new Map(QUESTIONS.map((question) => [question.id, question]));
+const byId = new Map(
+  [...QUESTIONS, ...FIELD_QUESTIONS].map((question) => [question.id, question]),
+);
 
 export function getQuestion(id: string): Question | undefined {
   return byId.get(id);
@@ -83,6 +86,13 @@ function assertBank(): void {
   }
 
   placementQuestions();
+
+  const grammarIds = new Set(QUESTIONS.map((question) => question.id));
+  for (const question of FIELD_QUESTIONS) {
+    if (grammarIds.has(question.id)) {
+      throw new Error(`Alatehtävän tunniste on jo kielioppipankissa: ${question.id}`);
+    }
+  }
 }
 
 assertBank();

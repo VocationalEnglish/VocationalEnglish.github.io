@@ -18,10 +18,13 @@ import {
   difficultyLabel,
   filledSentence,
   percent,
+  pickFieldFollowUp,
   pickFollowUp,
+  PRIOR_MASTERY,
   skillTitle,
   type SessionQuestion,
 } from "@/lib/engine";
+import { getField, isFieldId } from "@/lib/fields";
 import { practicePath } from "@/lib/paths";
 import { getSkill, isSkillId } from "@/lib/skills";
 import type { Learner, Question, SessionMode, SkillId } from "@/lib/types";
@@ -31,6 +34,7 @@ type BuiltSession = {
   queue: SessionQuestion[];
   invalid: boolean;
   startMastery: Partial<Record<SkillId, number>>;
+  startField: number | null;
   cap: number;
 };
 
@@ -49,6 +53,10 @@ function makeSession(key: string, learner: Learner, parsed: SessionMode | "inval
     queue,
     invalid: parsed === "invalid",
     startMastery: masterySnapshot(learner),
+    startField:
+      parsed !== "invalid" && parsed.type === "field"
+        ? (learner.fields[parsed.fieldId]?.mastery ?? PRIOR_MASTERY)
+        : null,
     cap: queue.length + (parsed !== "invalid" && parsed.type === "placement" ? 0 : 3),
   };
 }
@@ -59,7 +67,10 @@ type LogItem = {
   chosen: string;
 };
 
-function parseMode(tila: string | null, aihe: string | null): SessionMode | "invalid" {
+function parseMode(tila: string | null, aihe: string | null, ala: string | null): SessionMode | "invalid" {
+  if (ala) {
+    return isFieldId(ala) ? { type: "field", fieldId: ala } : "invalid";
+  }
   if (aihe) {
     return isSkillId(aihe) ? { type: "topic", skillId: aihe } : "invalid";
   }
@@ -72,6 +83,7 @@ function sessionTitle(mode: SessionMode): string {
   if (mode.type === "placement") return "Tasotesti";
   if (mode.type === "review") return "Kertaus";
   if (mode.type === "topic") return getSkill(mode.skillId)?.title ?? "Aihe";
+  if (mode.type === "field") return getField(mode.fieldId)?.title ?? "Ala";
   return "Adaptiivinen harjoitus";
 }
 
@@ -81,6 +93,9 @@ function sessionBlurb(mode: SessionMode): string {
   }
   if (mode.type === "review") return "Nämä menivät viimeksi väärin. Uusi oikea vastaus poistaa tehtävän kertauksesta.";
   if (mode.type === "topic") return "Kahdeksan tehtävää tästä aiheesta. Vaikeus seuraa sitä, mitä olet jo osannut.";
+  if (mode.type === "field") {
+    return "Kuusi tilannetta, joita tällä alalla tulee vastaan englanniksi. Jokaisesta vastauksesta näet, miksi ilmaus on juuri tämä.";
+  }
   return "Tehtävät painottuvat heikkoihin aiheisiin. Väärä vastaus tuo helpomman jatkokysymyksen.";
 }
 
@@ -91,9 +106,10 @@ export function PracticeSession() {
 
   const tila = params.get("tila");
   const aihe = params.get("aihe");
-  const mode = useMemo(() => parseMode(tila, aihe), [tila, aihe]);
+  const ala = params.get("ala");
+  const mode = useMemo(() => parseMode(tila, aihe, ala), [tila, aihe, ala]);
   const [round, setRound] = useState(0);
-  const sessionKey = `${tila ?? ""}:${aihe ?? ""}:${round}`;
+  const sessionKey = `${tila ?? ""}:${aihe ?? ""}:${ala ?? ""}:${round}`;
 
   const [session, setSession] = useState<BuiltSession | null>(null);
   const [index, setIndex] = useState(0);
@@ -152,10 +168,12 @@ export function PracticeSession() {
     return (
       <Card>
         <CardContent className="grid gap-3">
-          <h1 className="font-serif text-3xl">Aihetta ei löydy</h1>
-          <p className="text-muted-foreground">Tarkista osoite tai valitse aihe listasta.</p>
-          <Button size="lg" render={<Link href="/aiheet" />}>
-            Selaa aiheita
+          <h1 className="font-serif text-3xl">{ala ? "Alaa ei löydy" : "Aihetta ei löydy"}</h1>
+          <p className="text-muted-foreground">
+            {ala ? "Tarkista osoite tai valitse ala listasta." : "Tarkista osoite tai valitse aihe listasta."}
+          </p>
+          <Button size="lg" render={<Link href={ala ? "/alat" : "/aiheet"} />}>
+            {ala ? "Selaa aloja" : "Selaa aiheita"}
           </Button>
         </CardContent>
       </Card>
@@ -191,7 +209,9 @@ export function PracticeSession() {
         mode={mode}
         log={log}
         startMastery={activeSession.startMastery}
+        startField={activeSession.startField}
         learnerSkills={learner.skills}
+        fieldMastery={mode.type === "field" ? learner.fields[mode.fieldId]?.mastery : undefined}
         onAgain={() => {
           lock.current = false;
           setDone(false);
@@ -228,7 +248,9 @@ export function PracticeSession() {
 
     if (activeMode.type !== "placement" && !result.correct && sessionQueue.length < activeSession.cap) {
       const used = new Set(sessionQueue.map((item) => item.question.id));
-      const follow = pickFollowUp(result.learner, question.skillId, question.difficulty, used);
+      const follow = question.fieldId
+        ? pickFieldFollowUp(question.fieldId, question.difficulty, used)
+        : pickFollowUp(result.learner, question.skillId, question.difficulty, used);
       if (follow) {
         setSession((currentSession) => {
           if (!currentSession) return currentSession;
@@ -287,7 +309,9 @@ export function PracticeSession() {
         <Card>
           <CardContent className="grid gap-5">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{skill?.title}</Badge>
+              <Badge variant="secondary">
+                {question.fieldId ? (getField(question.fieldId)?.title ?? skill?.title) : skill?.title}
+              </Badge>
               <Badge variant="outline">{question.level}</Badge>
               <Badge variant="outline">{difficultyLabel(question.difficulty)}</Badge>
               {current.followUp && <Badge>Jatkokysymys</Badge>}
@@ -435,18 +459,26 @@ function Summary({
   mode,
   log,
   startMastery,
+  startField,
   learnerSkills,
+  fieldMastery,
   onAgain,
 }: {
   mode: SessionMode;
   log: LogItem[];
   startMastery: Partial<Record<SkillId, number>>;
+  startField: number | null;
   learnerSkills: Partial<Record<SkillId, { mastery: number }>>;
+  fieldMastery?: number;
   onAgain: () => void;
 }) {
   const correct = log.filter((item) => item.correct).length;
   const misses = log.filter((item) => !item.correct);
-  const skills = [...new Set(log.map((item) => item.question.skillId))];
+  const skills = mode.type === "field" ? [] : [...new Set(log.map((item) => item.question.skillId))];
+  const fieldDelta =
+    mode.type === "field" && fieldMastery !== undefined && startField !== null
+      ? Math.round((fieldMastery - startField) * 100)
+      : null;
 
   return (
     <div className="mx-auto grid w-full max-w-2xl gap-5">
@@ -461,6 +493,21 @@ function Summary({
             : "Väärät vastaukset jäävät kertaukseen, kunnes saat ne oikein."}
         </p>
       </div>
+
+      {mode.type === "field" && (
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+          <span>{getField(mode.fieldId)?.title}</span>
+          <span className="text-sm tabular-nums text-muted-foreground">
+            {fieldMastery === undefined ? "—" : `${percent(fieldMastery)} %`}
+            {fieldDelta !== null && fieldDelta !== 0 && (
+              <span className={fieldDelta > 0 ? "text-primary" : "text-destructive"}>
+                {" "}
+                {fieldDelta > 0 ? `+${fieldDelta}` : fieldDelta}
+              </span>
+            )}
+          </span>
+        </div>
+      )}
 
       {skills.length > 0 && (
         <ul className="grid gap-2">
@@ -494,8 +541,17 @@ function Summary({
               <li key={`${item.question.id}-${item.chosen}`} className="rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10">
                 <p className="font-serif text-lg">{filledSentence(item.question) || answerLabel(item.question)}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{item.question.rule}</p>
-                <Link href={`/aiheet/${item.question.skillId}`} className="mt-2 inline-block text-sm text-primary underline-offset-4 hover:underline">
-                  Avaa aiheen {skillTitle(item.question.skillId).toLowerCase()} sääntö
+                <Link
+                  href={
+                    item.question.fieldId
+                      ? `/alat/${item.question.fieldId}`
+                      : `/aiheet/${item.question.skillId}`
+                  }
+                  className="mt-2 inline-block text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  {item.question.fieldId
+                    ? `Avaa alan ${getField(item.question.fieldId)?.title.toLowerCase() ?? "fraasit"}`
+                    : `Avaa aiheen ${skillTitle(item.question.skillId).toLowerCase()} sääntö`}
                 </Link>
               </li>
             ))}
@@ -510,10 +566,16 @@ function Summary({
         <Button size="lg" variant="outline" render={<Link href="/" />}>
           Etusivulle
         </Button>
-        {misses[0] && (
-          <Button size="lg" variant="outline" render={<Link href={practicePath(misses[0].question.skillId)} />}>
-            Harjoittele aihetta
+        {mode.type === "field" ? (
+          <Button size="lg" variant="outline" render={<Link href={`/alat/${mode.fieldId}`} />}>
+            Avaa alan fraasit
           </Button>
+        ) : (
+          misses[0] && (
+            <Button size="lg" variant="outline" render={<Link href={practicePath(misses[0].question.skillId)} />}>
+              Harjoittele aihetta
+            </Button>
+          )
         )}
       </div>
       {mode.type === "placement" && (

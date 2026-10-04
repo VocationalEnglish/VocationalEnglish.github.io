@@ -9,7 +9,7 @@ import {
   subscribeLearner,
   writeLearner,
 } from "@/lib/storage";
-import type { Learner, Question } from "@/lib/types";
+import type { FieldId, Learner, Question } from "@/lib/types";
 
 type LearnerContextValue = {
   learner: Learner;
@@ -19,6 +19,7 @@ type LearnerContextValue = {
   place: () => void;
   rename: (name: string) => void;
   setGoal: (goal: 5 | 10 | 15) => void;
+  chooseField: (fieldId: FieldId) => void;
   reset: () => void;
 };
 
@@ -59,6 +60,13 @@ export function LearnerProvider({ children }: { children: React.ReactNode }) {
     [currentLearner],
   );
 
+  const chooseField = useCallback(
+    (fieldId: FieldId) => {
+      writeLearner({ ...currentLearner(), fieldId });
+    },
+    [currentLearner],
+  );
+
   const reset = useCallback(() => {
     const fresh = createLearner();
     fresh.name = currentLearner().name;
@@ -66,8 +74,8 @@ export function LearnerProvider({ children }: { children: React.ReactNode }) {
   }, [currentLearner]);
 
   const value = useMemo(
-    () => ({ learner, ready, persistent, answer, place, rename, setGoal, reset }),
-    [learner, ready, persistent, answer, place, rename, setGoal, reset],
+    () => ({ learner, ready, persistent, answer, place, rename, setGoal, chooseField, reset }),
+    [learner, ready, persistent, answer, place, rename, setGoal, chooseField, reset],
   );
 
   return <LearnerContext.Provider value={value}>{children}</LearnerContext.Provider>;

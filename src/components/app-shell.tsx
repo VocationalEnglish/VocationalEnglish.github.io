@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, ChartColumn, Flame, House, PenLine } from "lucide-react";
+import { BookOpen, ChartColumn, Flame, HardHat, House, PenLine } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useLearner } from "@/components/learner-provider";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "Koti", icon: House },
-  { href: "/aiheet", label: "Aiheet", icon: BookOpen },
+  { href: "/alat", label: "Alat", icon: HardHat },
+  { href: "/aiheet", label: "Kielioppi", icon: BookOpen },
   { href: "/harjoitus", label: "Harjoitus", icon: PenLine },
   { href: "/edistyminen", label: "Edistyminen", icon: ChartColumn },
 ];
@@ -61,7 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             {ready && learner.streak > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-sm text-accent-foreground">
                 <Flame className="size-4" aria-hidden="true" />
@@ -76,13 +79,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <footer className="mt-auto hidden border-t border-border/80 py-6 text-center text-sm text-muted-foreground md:block">
-        Edistyminen tallentuu vain tähän selaimeen. Virke käyttää brittienglantia, koska se on koulussa tavallisin linja.
+        Edistyminen tallentuu vain tähän selaimeen. Virke käyttää brittienglantia. Alan tehtävät ovat työtilanteita, kielioppiharjoitus pysyy erikseen.
       </footer>
       <nav
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur md:hidden"
         aria-label="Päävalikko"
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
@@ -91,7 +94,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href={link.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 px-2 py-2.5 text-[11px]",
+                    "flex flex-col items-center gap-1 px-1 py-2.5 text-center text-[10px] leading-tight",
                     active ? "text-primary" : "text-muted-foreground",
                   )}
                   aria-current={active ? "page" : undefined}

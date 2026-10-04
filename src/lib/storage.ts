@@ -1,6 +1,7 @@
 import { createLearner, DEFAULT_DAILY_GOAL } from "./engine";
+import { isFieldId } from "./fields";
 import { isSkillId } from "./skills";
-import type { Learner, SkillId, SkillState } from "./types";
+import type { FieldId, Learner, SkillId, SkillState } from "./types";
 
 const KEY = "virke.learner.v1";
 
@@ -52,8 +53,18 @@ export function sanitizeLearner(value: unknown): Learner | null {
     }
   }
 
+  const fields: Learner["fields"] = {};
+  if (raw.fields && typeof raw.fields === "object") {
+    for (const [id, field] of Object.entries(raw.fields)) {
+      if (!isFieldId(id)) continue;
+      const clean = sanitizeSkill(field);
+      if (clean) fields[id as FieldId] = clean;
+    }
+  }
+
   const goal = raw.dailyGoal;
   const dailyGoal = goal === 5 || goal === 10 || goal === 15 ? goal : DEFAULT_DAILY_GOAL;
+  const fieldId = typeof raw.fieldId === "string" && isFieldId(raw.fieldId) ? raw.fieldId : null;
 
   return {
     version: 1,
@@ -66,8 +77,18 @@ export function sanitizeLearner(value: unknown): Learner | null {
     dailyGoal,
     attempts: raw.attempts
       .filter((attempt) => attempt && typeof attempt.questionId === "string")
-      .slice(-400),
+      .slice(-400)
+      .map((attempt) => {
+        if (attempt.fieldId && !isFieldId(attempt.fieldId)) {
+          const rest = { ...attempt };
+          delete rest.fieldId;
+          return rest;
+        }
+        return attempt;
+      }),
     skills,
+    fieldId,
+    fields,
   };
 }
 

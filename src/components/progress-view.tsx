@@ -27,7 +27,8 @@ import {
   percent,
   reviewQuestions,
 } from "@/lib/engine";
-import { practicePath } from "@/lib/paths";
+import { FIELDS } from "@/lib/fields";
+import { fieldPracticePath, practicePath } from "@/lib/paths";
 import { getQuestion } from "@/lib/questions";
 import { SKILLS } from "@/lib/skills";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,50 @@ export function ProgressView() {
           </form>
         </CardContent>
       </Card>
+
+      <section className="grid gap-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-2xl">Alat</h2>
+          <Link href="/alat" className="text-sm text-primary underline-offset-4 hover:underline">
+            Kaikki alat
+          </Link>
+        </div>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {FIELDS.filter((field) => (learner.fields[field.id]?.seen ?? 0) > 0 || learner.fieldId === field.id).map(
+            (field) => {
+              const state = learner.fields[field.id];
+              const known = Boolean(state && state.seen > 0);
+              return (
+                <li key={field.id}>
+                  <Link
+                    href={fieldPracticePath(field.id)}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
+                  >
+                    <span>
+                      {field.title}
+                      {learner.fieldId === field.id && (
+                        <span className="ml-2 text-xs tracking-wide text-primary uppercase">Oma</span>
+                      )}
+                    </span>
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      {known && state ? `${percent(state.mastery)} %` : "uusi"}
+                    </span>
+                  </Link>
+                </li>
+              );
+            },
+          )}
+        </ul>
+        {FIELDS.every((field) => (learner.fields[field.id]?.seen ?? 0) === 0 && learner.fieldId !== field.id) && (
+          <p className="text-sm leading-6 text-muted-foreground">
+            Oma ala ei ole vielä valittu.{" "}
+            <Link href="/alat" className="text-primary underline-offset-4 hover:underline">
+              Valitse ala
+            </Link>{" "}
+            ja harjoittele sen työtilanteita.
+          </p>
+        )}
+      </section>
 
       <Tabs defaultValue="taidot">
         <TabsList>

@@ -12,7 +12,8 @@ import {
   reviewQuestions,
 } from "./engine";
 import { getQuestion, QUESTIONS } from "./questions";
-import { SKILL_IDS } from "./types";
+import { questionsForField } from "./questions/fields";
+import { FIELD_IDS, SKILL_IDS } from "./types";
 
 test("normalizes contractions and trailing punctuation", () => {
   assert.equal(normalizeAnswer("  Don’t   like. "), "don't like");
@@ -122,4 +123,24 @@ test("level follows difficulty, not a handful of easy answers", () => {
     learner = recordAnswer(learner, mid, "a", Date.now() + 20 + index, false);
   }
   assert.equal(estimateLevel(learner).code, "B1");
+});
+
+test("field practice stays on that field and does not move grammar mastery", () => {
+  const learner = createLearner();
+  for (const fieldId of FIELD_IDS) {
+    const session = buildSession(learner, { type: "field", fieldId });
+    assert.ok(session.length >= 6);
+    assert.ok(session.every((item) => item.question.fieldId === fieldId));
+    assert.equal(session.length, questionsForField(fieldId).length);
+  }
+
+  const grammar = buildSession(learner, { type: "topic", skillId: "modals" }, () => 0.1);
+  assert.ok(grammar.every((item) => !item.question.fieldId));
+
+  const construction = questionsForField("construction")[0];
+  assert.ok(construction);
+  const after = recordAnswer(learner, construction, construction.answer, Date.now(), false);
+  assert.equal(after.skills[construction.skillId], undefined);
+  assert.ok(after.fields.construction && after.fields.construction.seen === 1);
+  assert.equal(estimateLevel(after).code, null);
 });

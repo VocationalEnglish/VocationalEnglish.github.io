@@ -1,8 +1,10 @@
+import { questionsForField } from "./questions/fields";
 import { placementQuestions, QUESTIONS, getQuestion } from "./questions";
 import { getSkill } from "./skills";
 import type {
   Attempt,
   Cefr,
+  FieldId,
   Learner,
   Question,
   SessionMode,
@@ -28,6 +30,8 @@ export function createLearner(now = Date.now()): Learner {
     dailyGoal: DEFAULT_DAILY_GOAL,
     attempts: [],
     skills: {},
+    fieldId: null,
+    fields: {},
   };
 }
 
@@ -159,7 +163,35 @@ export function recordAnswer(
     at: now,
     hinted,
     difficulty: question.difficulty,
+    ...(question.fieldId ? { fieldId: question.fieldId } : {}),
   };
+
+  if (question.fieldId) {
+    const fieldCurrent = learner.fields[question.fieldId];
+    const fieldMastery = nextMastery(
+      fieldCurrent?.mastery ?? PRIOR_MASTERY,
+      correct,
+      question.difficulty,
+      hinted,
+    );
+    const nextField: SkillState = {
+      mastery: fieldMastery,
+      seen: (fieldCurrent?.seen ?? 0) + 1,
+      correct: (fieldCurrent?.correct ?? 0) + (correct ? 1 : 0),
+      wrong: (fieldCurrent?.wrong ?? 0) + (correct ? 0 : 1),
+      correctStreak: correct ? (fieldCurrent?.correctStreak ?? 0) + 1 : 0,
+      lastAt: now,
+    };
+    return {
+      ...learner,
+      ...bumpStreak(learner, now),
+      attempts: [...learner.attempts, attempt].slice(-400),
+      fields: {
+        ...learner.fields,
+        [question.fieldId]: nextField,
+      },
+    };
+  }
 
   return {
     ...learner,
@@ -191,8 +223,12 @@ export type LevelEstimate = {
   practiced: number;
 };
 
+function grammarAttempts(learner: Learner): Attempt[] {
+  return learner.attempts.filter((attempt) => !attempt.fieldId);
+}
+
 function bandStats(learner: Learner, difficulty: number) {
-  const rows = learner.attempts.filter((attempt) => attempt.difficulty === difficulty);
+  const rows = grammarAttempts(learner).filter((attempt) => attempt.difficulty === difficulty);
   const correct = rows.filter((attempt) => attempt.correct).length;
   return {
     n: rows.length,
@@ -207,7 +243,7 @@ function bandIsSolid(learner: Learner, difficulty: number): boolean {
 
 export function estimateLevel(learner: Learner): LevelEstimate {
   const practiced = Object.values(learner.skills).filter((skill) => skill && skill.seen > 0);
-  const answers = learner.attempts.length;
+  const answers = grammarAttempts(learner).length;
   const average = practiced.length
     ? practiced.reduce((sum, skill) => sum + (skill?.mastery ?? 0), 0) / practiced.length
     : null;
@@ -223,7 +259,7 @@ export function estimateLevel(learner: Learner): LevelEstimate {
     };
   }
 
-  const easy = learner.attempts.filter((attempt) => attempt.difficulty <= 2);
+  const easy = grammarAttempts(learner).filter((attempt) => attempt.difficulty <= 2);
   const easyAccuracy = easy.length
     ? easy.filter((attempt) => attempt.correct).length / easy.length
     : 1;
@@ -342,6 +378,7 @@ function weightedPick<T>(items: { item: T; score: number }[], rng: () => number)
 export function sessionLength(mode: SessionMode, learner: Learner): number {
   if (mode.type === "placement") return placementQuestions().length;
   if (mode.type === "review") return Math.min(8, reviewQuestions(learner).length);
+  if (mode.type === "field") return questionsForField(mode.fieldId).length;
   return 8;
 }
 
@@ -358,6 +395,10 @@ export function buildSession(
     return reviewQuestions(learner)
       .slice(0, 8)
       .map((question) => ({ question, followUp: false }));
+  }
+
+  if (mode.type === "field") {
+    return questionsForField(mode.fieldId).map((question) => ({ question, followUp: false }));
   }
 
   const count = sessionLength(mode, learner);
@@ -409,6 +450,17 @@ export function pickFollowUp(
     })),
     rng,
   );
+}
+
+export function pickFieldFollowUp(
+  fieldId: FieldId,
+  difficulty: number,
+  used: Set<string>,
+): Question | null {
+  const pool = questionsForField(fieldId).filter((question) => !used.has(question.id));
+  if (!pool.length) return null;
+  const easier = pool.filter((question) => question.difficulty <= Math.max(1, difficulty - 1));
+  return easier[0] ?? pool[0] ?? null;
 }
 
 export function choiceNote(question: Question, choiceId: string): string | undefined {

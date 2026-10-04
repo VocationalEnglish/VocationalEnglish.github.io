@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, GraduationCap, PenLine, RotateCcw } from "lucide-react";
+import { ArrowRight, GraduationCap, HardHat, PenLine, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +17,8 @@ import {
   reviewQuestions,
   weakestSkill,
 } from "@/lib/engine";
-import { practicePath } from "@/lib/paths";
+import { getField } from "@/lib/fields";
+import { fieldPracticePath, practicePath } from "@/lib/paths";
 import { getQuestion } from "@/lib/questions";
 import { getSkill, SKILLS } from "@/lib/skills";
 
@@ -51,6 +52,8 @@ export function HomeView() {
   const weak = weakId ? getSkill(weakId) : undefined;
   const reviewCount = reviewQuestions(learner).length;
   const greeting = learner.name ? `Hei, ${learner.name}.` : "Hei.";
+  const field = learner.fieldId ? getField(learner.fieldId) : undefined;
+  const fieldState = field ? learner.fields[field.id] : undefined;
 
   return (
     <div className="grid gap-8">
@@ -103,6 +106,25 @@ export function HomeView() {
           </CardContent>
         </Card>
       </div>
+
+      {field && (
+        <Link
+          href={fieldPracticePath(field.id)}
+          className="flex items-center justify-between gap-4 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
+        >
+          <span className="flex items-center gap-2 text-sm">
+            <HardHat className="size-4 text-primary" aria-hidden="true" />
+            <span>
+              {field.title}
+              <span className="text-muted-foreground">
+                {" "}
+                · {fieldState && fieldState.seen > 0 ? `${percent(fieldState.mastery)} %` : "oma ala, ei vielä harjoiteltu"}
+              </span>
+            </span>
+          </span>
+          <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+        </Link>
+      )}
 
       {reviewCount > 0 && (
         <Link
@@ -165,8 +187,8 @@ function Welcome({ name, onRename }: { name: string; onRename: (name: string) =>
         </h1>
         <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
           Artikkelit, he ja she, perfekti ja prepositiot eivät ole pieniä yksityiskohtia, jos äidinkieli on suomi.
-          Virke näyttää säännön, antaa tehtävän ja kertoo miksi vastaus on oikein. Oikea vastaus nostaa tasoa,
-          väärä tuo helpomman jatkokysymyksen.
+          Virke näyttää säännön, antaa tehtävän ja kertoo miksi vastaus on oikein. Lisäksi jokaisella ammattialalla
+          on omat työtilanteet: turvakäsky, asiakas, mittayksikkö ja raportti.
         </p>
         <ul className="mt-6 grid gap-3">
           {[
@@ -185,8 +207,9 @@ function Welcome({ name, onRename }: { name: string; onRename: (name: string) =>
             <GraduationCap data-icon="inline-start" />
             Aloita tasotesti
           </Button>
-          <Button size="lg" variant="outline" render={<Link href="/aiheet" />}>
-            Selaa aiheita
+          <Button size="lg" variant="outline" render={<Link href="/alat" />}>
+            <HardHat data-icon="inline-start" />
+            Valitse alasi
           </Button>
         </div>
         <form
