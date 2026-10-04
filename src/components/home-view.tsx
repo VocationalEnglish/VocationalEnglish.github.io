@@ -206,6 +206,11 @@ function Welcome({ name, onRename }: { name: string; onRename: (name: string) =>
               Tallenna
             </Button>
           </div>
+          {name ? (
+            <p className="mt-2 text-sm text-muted-foreground" role="status">
+              Hei, {name}. Nimi on tallessa tähän selaimeen.
+            </p>
+          ) : null}
         </form>
       </div>
       {sample && <SampleCard />}
