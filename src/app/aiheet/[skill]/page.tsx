@@ -4,6 +4,8 @@ import { LessonView } from "@/components/lesson-view";
 import { getSkill, isSkillId } from "@/lib/skills";
 import { SKILL_IDS } from "@/lib/types";
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return SKILL_IDS.map((skill) => ({ skill }));
 }
