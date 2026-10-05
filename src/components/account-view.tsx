@@ -19,7 +19,7 @@ export function AccountView() {
   const [busy, setBusy] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
 
-  if (!ready) return <div className="h-64 animate-pulse rounded-md bg-muted" />;
+  if (!ready) return <div className="h-64 animate-pulse rounded-2xl bg-muted" />;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -217,12 +217,12 @@ export function AccountView() {
       </Card>
 
       {error && (
-        <p className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+        <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
       {notice && (
-        <p className="rounded-md bg-accent px-4 py-3 text-sm text-accent-foreground" role="status">
+        <p className="rounded-2xl bg-accent px-4 py-3 text-sm text-accent-foreground" role="status">
           {notice}
         </p>
       )}

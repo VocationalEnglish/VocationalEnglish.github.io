@@ -2,7 +2,6 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useLayoutEffect, useSyncExternalStore } from "react";
-import { cn } from "@/lib/utils";
 
 const THEME_KEY = "virke.theme";
 const THEME_EVENT = "virke-theme";
@@ -24,7 +23,7 @@ function serverSnapshot(): "light" | "dark" {
   return "light";
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const dark = theme === "dark";
 
@@ -56,10 +55,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggle}
       aria-pressed={dark}
       aria-label={dark ? "Vaihda vaaleaan teemaan" : "Vaihda tummaan teemaan"}
-      className={cn(
-        "inline-flex size-9 items-center justify-center text-muted-foreground ring-1 ring-border transition hover:bg-muted hover:text-foreground",
-        className,
-      )}
+      className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground ring-1 ring-border transition hover:bg-muted hover:text-foreground"
     >
       {dark ? <Sun className="size-4" aria-hidden="true" /> : <Moon className="size-4" aria-hidden="true" />}
     </button>

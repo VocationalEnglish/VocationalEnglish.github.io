@@ -110,7 +110,7 @@ export function HomeView() {
       {!account && (
         <Link
           href="/tili"
-          className="flex items-center justify-between gap-4 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
         >
           <span className="text-sm leading-6">
             Luo tili tähän selaimeen, niin nimi ja edistyminen pysyvät tallessa myös seuraavalla kerralla.
@@ -122,7 +122,7 @@ export function HomeView() {
       {field && (
         <Link
           href={`/alat/${field.id}`}
-          className="flex items-center justify-between gap-4 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
         >
           <span className="flex items-center gap-2 text-sm">
             <HardHat className="size-4 text-primary" aria-hidden="true" />
@@ -141,7 +141,7 @@ export function HomeView() {
       {reviewCount > 0 && (
         <Link
           href={practicePath("review")}
-          className="flex items-center justify-between gap-4 bg-accent px-4 py-3 text-accent-foreground"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-accent px-4 py-3 text-accent-foreground"
         >
           <span className="flex items-center gap-2 text-sm">
             <RotateCcw className="size-4" aria-hidden="true" />
@@ -165,7 +165,7 @@ export function HomeView() {
             return (
               <li key={skill.id}>
                 <Link href={`/aiheet/${skill.id}`} className="block h-full">
-                  <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary">
+                  <Card className="h-full transition hover:-translate-y-0.5 hover:ring-primary/30">
                     <CardContent className="grid gap-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -216,7 +216,7 @@ function Welcome({
             ["Sanasto ja työtilanteet omalta alalta.", "Kypärä, tilaus, mittayksikkö ja raportti harjoitellaan sillä alalla, jota opiskelet."],
             ["Oma tili tässä selaimessa.", "Edistyminen tallentuu tilillesi tälle koneelle. Varmuuskopio siirtää sen toiseen selaimeen. Mitään ei lähetetä palvelimelle."],
           ].map(([title, body]) => (
-            <li key={title} className="border border-border border-l-4 border-l-signal bg-card px-4 py-3">
+            <li key={title} className="rounded-2xl bg-card/80 px-4 py-3 ring-1 ring-foreground/10">
               <p className="font-medium">{title}</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
             </li>

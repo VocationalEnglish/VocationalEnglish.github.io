@@ -162,7 +162,7 @@ export function ProgressView() {
                 <li key={field.id}>
                   <Link
                     href={fieldPracticePath(field.id)}
-                    className="flex items-center justify-between gap-3 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
                   >
                     <span>
                       {field.title}
@@ -202,7 +202,7 @@ export function ProgressView() {
               const known = Boolean(state && state.seen > 0);
               const value = known && state ? percent(state.mastery) : 0;
               return (
-                <li key={skill.id} className="border border-border bg-card px-4 py-3">
+                <li key={skill.id} className="rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Link href={`/aiheet/${skill.id}`} className="font-medium underline-offset-4 hover:underline">
                       {skill.title}
@@ -229,7 +229,7 @@ export function ProgressView() {
                   (later) => later.questionId === attempt.questionId && later.at > attempt.at && later.correct,
                 );
                 return (
-                  <li key={`${attempt.questionId}-${attempt.at}`} className="border border-border bg-card px-4 py-3">
+                  <li key={`${attempt.questionId}-${attempt.at}`} className="rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline">{question.level}</Badge>
                       <Badge variant="outline">{difficultyLabel(question.difficulty)}</Badge>

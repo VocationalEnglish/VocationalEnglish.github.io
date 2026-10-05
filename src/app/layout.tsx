@@ -1,18 +1,17 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Atkinson_Hyperlegible, Bricolage_Grotesque } from "next/font/google";
+import { Fraunces, Outfit } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { LearnerProvider } from "@/components/learner-provider";
 import "./globals.css";
 
-const outfit = Atkinson_Hyperlegible({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["400", "700"],
   variable: "--font-outfit",
 });
 
-const fraunces = Bricolage_Grotesque({
+const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
 });
@@ -27,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#243352",
+  themeColor: "#f4f0e6",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

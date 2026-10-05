@@ -32,7 +32,7 @@ export function FieldsView() {
               return (
                 <li key={field.id}>
                   <Link href={`/alat/${field.id}`} className="block h-full">
-                    <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary">
+                    <Card className="h-full transition hover:-translate-y-0.5 hover:ring-primary/30">
                       <CardContent className="grid gap-2">
                         <div className="flex items-start justify-between gap-3">
                           <p className="font-medium">{field.title}</p>

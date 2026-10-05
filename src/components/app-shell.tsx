@@ -23,27 +23,26 @@ function isActive(pathname: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { learner, ready, account } = useLearner();
-  const accountLabel = account?.displayName || "Tili";
+  const accountActive = isActive(pathname, "/tili");
 
   return (
     <div className="flex min-h-full flex-col">
       <a
         href="#sisalto"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:bg-signal focus:px-3 focus:py-2 focus:text-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2"
       >
         Siirry sisältöön
       </a>
-      <header className="sticky top-0 z-40 bg-ink text-white">
-        <div className="h-1 bg-signal" />
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 md:gap-6 md:px-6">
+      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center bg-signal font-serif text-lg font-bold text-ink">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary font-serif text-lg text-primary-foreground">
               V
             </span>
             <span>
               <span className="block font-serif text-lg leading-none tracking-tight">Virke</span>
-              <span className="mt-1 block text-[11px] tracking-[0.16em] text-white/65 uppercase">
-                Ammattienglanti
+              <span className="mt-1 block text-[11px] tracking-wide text-muted-foreground uppercase">
+                Kielioppitreeni
               </span>
             </span>
           </Link>
@@ -55,10 +54,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-3 py-1.5 text-sm transition-colors",
-                    active
-                      ? "bg-white/10 text-white shadow-[inset_0_-2px_0_0_var(--signal)]"
-                      : "text-white/70 hover:bg-white/10 hover:text-white",
+                    "rounded-full px-3 py-1.5 text-sm transition-colors",
+                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                   aria-current={active ? "page" : undefined}
                 >
@@ -68,9 +65,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle className="text-white/80 ring-white/25 hover:bg-white/10 hover:text-white" />
+            <ThemeToggle />
             {ready && learner.streak > 0 && (
-              <span className="inline-flex items-center gap-1.5 bg-signal px-2.5 py-1 text-sm font-medium text-ink">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-sm text-accent-foreground">
                 <Flame className="size-4" aria-hidden="true" />
                 {learner.streak} pv
                 <span className="sr-only">harjoitusputki</span>
@@ -79,14 +76,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/tili"
               className={cn(
-                "max-w-36 truncate px-2.5 py-1.5 text-sm",
-                isActive(pathname, "/tili")
-                  ? "bg-signal font-medium text-ink"
-                  : "text-white/85 ring-1 ring-white/25 hover:bg-white/10 hover:text-white",
+                "max-w-36 truncate rounded-full px-3 py-1.5 text-sm transition-colors",
+                accountActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
-              aria-current={isActive(pathname, "/tili") ? "page" : undefined}
+              aria-current={accountActive ? "page" : undefined}
             >
-              {accountLabel}
+              {account?.displayName || "Tili"}
             </Link>
           </div>
         </div>
@@ -94,11 +89,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main id="sisalto" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-28 md:px-6 md:pt-10 md:pb-16">
         {children}
       </main>
-      <footer className="mt-auto hidden border-t border-border py-6 text-center text-sm text-muted-foreground md:block">
-        Tili ja edistyminen tallentuvat tähän selaimeen, ei palvelimelle. Varmuuskopio siirtää ne toiseen koneeseen. Virke käyttää brittienglantia.
+      <footer className="mt-auto hidden border-t border-border/80 py-6 text-center text-sm text-muted-foreground md:block">
+        Edistyminen tallentuu vain tähän selaimeen. Virke käyttää brittienglantia. Alan tehtävät ovat työtilanteita, kielioppiharjoitus pysyy erikseen.
       </footer>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-ink text-white md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur md:hidden"
         aria-label="Päävalikko"
       >
         <ul className="grid grid-cols-5">
@@ -111,7 +106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href={link.href}
                   className={cn(
                     "flex flex-col items-center gap-1 px-1 py-2.5 text-center text-[10px] leading-tight",
-                    active ? "text-signal" : "text-white/65",
+                    active ? "text-primary" : "text-muted-foreground",
                   )}
                   aria-current={active ? "page" : undefined}
                 >
