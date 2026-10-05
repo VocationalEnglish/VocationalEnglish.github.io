@@ -34,7 +34,7 @@ import { SKILLS } from "@/lib/skills";
 import { cn } from "@/lib/utils";
 
 export function ProgressView() {
-  const { learner, ready, persistent, rename, setGoal, reset } = useLearner();
+  const { learner, ready, persistent, account, rename, setGoal, reset } = useLearner();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState<string | null>(null);
 
@@ -54,6 +54,25 @@ export function ProgressView() {
         <h1 className="font-serif text-4xl tracking-tight">Edistyminen</h1>
         <p className="mt-3 leading-7 text-muted-foreground">
           Taso ei nouse pelkästään helpoista oikeista vastauksista. A2 vaatii onnistumista tutuissa tehtävissä, B1 keskitasoa ja B2 tarkempia eroja. Tämä on harjoittelun arvio, ei kielikoe.
+          Alan tehtävät eivät muuta kieliopin tasoa.
+        </p>
+        <p className="mt-3 text-sm leading-6">
+          {account ? (
+            <>
+              Kirjautuneena: <span className="font-medium">{account.displayName}</span> ({account.username}).{" "}
+              <Link href="/tili" className="text-primary underline-offset-4 hover:underline">
+                Tili ja varmuuskopio
+              </Link>
+            </>
+          ) : (
+            <>
+              Edistyminen on nyt vierailijana tässä selaimessa.{" "}
+              <Link href="/tili" className="text-primary underline-offset-4 hover:underline">
+                Luo tili
+              </Link>
+              , jos haluat pitää sen omalla nimellä.
+            </>
+          )}
         </p>
       </div>
 
@@ -143,7 +162,7 @@ export function ProgressView() {
                 <li key={field.id}>
                   <Link
                     href={fieldPracticePath(field.id)}
-                    className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
+                    className="flex items-center justify-between gap-3 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
                   >
                     <span>
                       {field.title}
@@ -166,7 +185,7 @@ export function ProgressView() {
             <Link href="/alat" className="text-primary underline-offset-4 hover:underline">
               Valitse ala
             </Link>{" "}
-            ja harjoittele sen työtilanteita.
+            ja harjoittele sen nimikkeitä, sanoja ja työtilanteita.
           </p>
         )}
       </section>
@@ -183,7 +202,7 @@ export function ProgressView() {
               const known = Boolean(state && state.seen > 0);
               const value = known && state ? percent(state.mastery) : 0;
               return (
-                <li key={skill.id} className="rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+                <li key={skill.id} className="border border-border bg-card px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Link href={`/aiheet/${skill.id}`} className="font-medium underline-offset-4 hover:underline">
                       {skill.title}
@@ -210,7 +229,7 @@ export function ProgressView() {
                   (later) => later.questionId === attempt.questionId && later.at > attempt.at && later.correct,
                 );
                 return (
-                  <li key={`${attempt.questionId}-${attempt.at}`} className="rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+                  <li key={`${attempt.questionId}-${attempt.at}`} className="border border-border bg-card px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline">{question.level}</Badge>
                       <Badge variant="outline">{difficultyLabel(question.difficulty)}</Badge>
@@ -233,7 +252,8 @@ export function ProgressView() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <p className="max-w-md text-sm text-muted-foreground">
-          Vastauksia yhteensä {learner.attempts.length}. Tiedot ovat vain tässä selaimessa.
+          Vastauksia yhteensä {learner.attempts.length}. Tiedot ovat vain tässä selaimessa
+          {account ? " tällä tilillä" : ""}.
         </p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className={cn(buttonVariants({ variant: "destructive" }))}>

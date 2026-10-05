@@ -144,3 +144,24 @@ test("field practice stays on that field and does not move grammar mastery", () 
   assert.ok(after.fields.construction && after.fields.construction.seen === 1);
   assert.equal(estimateLevel(after).code, null);
 });
+
+test("title and word sessions stay on their track and do not move grammar mastery", () => {
+  const learner = createLearner();
+  for (const fieldId of FIELD_IDS) {
+    const titles = buildSession(learner, { type: "field", fieldId, track: "titles" });
+    const words = buildSession(learner, { type: "field", fieldId, track: "words" });
+    assert.ok(titles.length >= 8, fieldId);
+    assert.ok(words.length >= 10, fieldId);
+    assert.ok(titles.every((item) => item.question.track === "titles" && item.question.fieldId === fieldId));
+    assert.ok(words.every((item) => item.question.track === "words" && item.question.fieldId === fieldId));
+    assert.equal(new Set(titles.map((item) => item.question.id)).size, titles.length);
+    assert.equal(new Set(words.map((item) => item.question.id)).size, words.length);
+  }
+
+  const title = buildSession(learner, { type: "field", fieldId: "care", track: "titles" })[0];
+  assert.ok(title);
+  const after = recordAnswer(learner, title.question, title.question.answer, Date.now(), false);
+  assert.equal(after.skills[title.question.skillId], undefined);
+  assert.equal(after.fields.care?.seen, 1);
+  assert.equal(estimateLevel(after).code, null);
+});

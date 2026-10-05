@@ -27,7 +27,7 @@ import {
 import { getField, isFieldId } from "@/lib/fields";
 import { practicePath } from "@/lib/paths";
 import { getSkill, isSkillId } from "@/lib/skills";
-import type { Learner, Question, SessionMode, SkillId } from "@/lib/types";
+import type { FieldTrack, Learner, Question, SessionMode, SkillId } from "@/lib/types";
 
 type BuiltSession = {
   key: string;
@@ -67,9 +67,24 @@ type LogItem = {
   chosen: string;
 };
 
-function parseMode(tila: string | null, aihe: string | null, ala: string | null): SessionMode | "invalid" {
+function parseTrack(osio: string | null): FieldTrack | "invalid" | null {
+  if (!osio || osio === "tyo") return osio ? "work" : null;
+  if (osio === "nimikkeet") return "titles";
+  if (osio === "sanasto") return "words";
+  return "invalid";
+}
+
+function parseMode(
+  tila: string | null,
+  aihe: string | null,
+  ala: string | null,
+  osio: string | null,
+): SessionMode | "invalid" {
   if (ala) {
-    return isFieldId(ala) ? { type: "field", fieldId: ala } : "invalid";
+    if (!isFieldId(ala)) return "invalid";
+    const track = parseTrack(osio);
+    if (track === "invalid") return "invalid";
+    return { type: "field", fieldId: ala, track: track ?? "work" };
   }
   if (aihe) {
     return isSkillId(aihe) ? { type: "topic", skillId: aihe } : "invalid";
@@ -83,7 +98,12 @@ function sessionTitle(mode: SessionMode): string {
   if (mode.type === "placement") return "Tasotesti";
   if (mode.type === "review") return "Kertaus";
   if (mode.type === "topic") return getSkill(mode.skillId)?.title ?? "Aihe";
-  if (mode.type === "field") return getField(mode.fieldId)?.title ?? "Ala";
+  if (mode.type === "field") {
+    const name = getField(mode.fieldId)?.title ?? "Ala";
+    if (mode.track === "titles") return `${name} · nimikkeet`;
+    if (mode.track === "words") return `${name} · sanasto`;
+    return `${name} · työtilanteet`;
+  }
   return "Adaptiivinen harjoitus";
 }
 
@@ -93,8 +113,14 @@ function sessionBlurb(mode: SessionMode): string {
   }
   if (mode.type === "review") return "Nämä menivät viimeksi väärin. Uusi oikea vastaus poistaa tehtävän kertauksesta.";
   if (mode.type === "topic") return "Kahdeksan tehtävää tästä aiheesta. Vaikeus seuraa sitä, mitä olet jo osannut.";
+  if (mode.type === "field" && mode.track === "titles") {
+    return "Ammattinimikkeet englanniksi. Tutkintonimike ja työpaikan sana eivät aina ole sama asia.";
+  }
+  if (mode.type === "field" && mode.track === "words") {
+    return "Alan sanat, jotka pitää osata sanoa työssä. Väärät vaihtoehdot ovat saman alan muita sanoja.";
+  }
   if (mode.type === "field") {
-    return "Kuusi tilannetta, joita tällä alalla tulee vastaan englanniksi. Jokaisesta vastauksesta näet, miksi ilmaus on juuri tämä.";
+    return "Tilanteita, joita tällä alalla tulee vastaan englanniksi. Jokaisesta vastauksesta näet, miksi ilmaus on juuri tämä.";
   }
   return "Tehtävät painottuvat heikkoihin aiheisiin. Väärä vastaus tuo helpomman jatkokysymyksen.";
 }
@@ -107,9 +133,10 @@ export function PracticeSession() {
   const tila = params.get("tila");
   const aihe = params.get("aihe");
   const ala = params.get("ala");
-  const mode = useMemo(() => parseMode(tila, aihe, ala), [tila, aihe, ala]);
+  const osio = params.get("osio");
+  const mode = useMemo(() => parseMode(tila, aihe, ala, osio), [tila, aihe, ala, osio]);
   const [round, setRound] = useState(0);
-  const sessionKey = `${tila ?? ""}:${aihe ?? ""}:${ala ?? ""}:${round}`;
+  const sessionKey = `${tila ?? ""}:${aihe ?? ""}:${ala ?? ""}:${osio ?? ""}:${round}`;
 
   const [session, setSession] = useState<BuiltSession | null>(null);
   const [index, setIndex] = useState(0);
@@ -249,7 +276,7 @@ export function PracticeSession() {
     if (activeMode.type !== "placement" && !result.correct && sessionQueue.length < activeSession.cap) {
       const used = new Set(sessionQueue.map((item) => item.question.id));
       const follow = question.fieldId
-        ? pickFieldFollowUp(question.fieldId, question.difficulty, used)
+        ? pickFieldFollowUp(question.fieldId, question.difficulty, used, question.track ?? "work")
         : pickFollowUp(result.learner, question.skillId, question.difficulty, used);
       if (follow) {
         setSession((currentSession) => {

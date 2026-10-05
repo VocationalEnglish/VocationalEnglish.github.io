@@ -18,14 +18,14 @@ import {
   weakestSkill,
 } from "@/lib/engine";
 import { getField } from "@/lib/fields";
-import { fieldPracticePath, practicePath } from "@/lib/paths";
+import { practicePath } from "@/lib/paths";
 import { getQuestion } from "@/lib/questions";
 import { getSkill, SKILLS } from "@/lib/skills";
 
 const sample = getQuestion("art-01");
 
 export function HomeView() {
-  const { learner, ready, rename } = useLearner();
+  const { learner, ready, rename, account } = useLearner();
 
   if (!ready) {
     return (
@@ -42,7 +42,7 @@ export function HomeView() {
   }
 
   if (learner.attempts.length === 0) {
-    return <Welcome name={learner.name} onRename={rename} />;
+    return <Welcome name={learner.name} onRename={rename} signedIn={Boolean(account)} />;
   }
 
   const level = estimateLevel(learner);
@@ -51,7 +51,7 @@ export function HomeView() {
   const weakId = weakestSkill(learner);
   const weak = weakId ? getSkill(weakId) : undefined;
   const reviewCount = reviewQuestions(learner).length;
-  const greeting = learner.name ? `Hei, ${learner.name}.` : "Hei.";
+  const greeting = learner.name ? `Hei, ${learner.name}.` : account ? `Hei, ${account.displayName}.` : "Hei.";
   const field = learner.fieldId ? getField(learner.fieldId) : undefined;
   const fieldState = field ? learner.fields[field.id] : undefined;
 
@@ -60,7 +60,7 @@ export function HomeView() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">{greeting}</p>
-          <h1 className="mt-1 font-serif text-4xl tracking-tight text-balance">Jatka siitä, mikä vielä horjuu.</h1>
+          <h1 className="mt-1 font-serif text-4xl tracking-tight text-balance">Jatka omaa alaasi tai heikointa kielioppia.</h1>
         </div>
         {level.code && <Badge variant="secondary">{level.confidence === "steady" ? level.title : `Alustava · ${level.title}`}</Badge>}
       </div>
@@ -107,10 +107,22 @@ export function HomeView() {
         </Card>
       </div>
 
+      {!account && (
+        <Link
+          href="/tili"
+          className="flex items-center justify-between gap-4 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
+        >
+          <span className="text-sm leading-6">
+            Luo tili tähän selaimeen, niin nimi ja edistyminen pysyvät tallessa myös seuraavalla kerralla.
+          </span>
+          <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+        </Link>
+      )}
+
       {field && (
         <Link
-          href={fieldPracticePath(field.id)}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-card px-4 py-3 ring-1 ring-foreground/10"
+          href={`/alat/${field.id}`}
+          className="flex items-center justify-between gap-4 border border-border border-l-4 border-l-signal bg-card px-4 py-3"
         >
           <span className="flex items-center gap-2 text-sm">
             <HardHat className="size-4 text-primary" aria-hidden="true" />
@@ -118,7 +130,7 @@ export function HomeView() {
               {field.title}
               <span className="text-muted-foreground">
                 {" "}
-                · {fieldState && fieldState.seen > 0 ? `${percent(fieldState.mastery)} %` : "oma ala, ei vielä harjoiteltu"}
+                · {fieldState && fieldState.seen > 0 ? `${percent(fieldState.mastery)} %` : "nimikkeet, sanasto ja työtilanteet"}
               </span>
             </span>
           </span>
@@ -129,7 +141,7 @@ export function HomeView() {
       {reviewCount > 0 && (
         <Link
           href={practicePath("review")}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-accent px-4 py-3 text-accent-foreground"
+          className="flex items-center justify-between gap-4 bg-accent px-4 py-3 text-accent-foreground"
         >
           <span className="flex items-center gap-2 text-sm">
             <RotateCcw className="size-4" aria-hidden="true" />
@@ -153,7 +165,7 @@ export function HomeView() {
             return (
               <li key={skill.id}>
                 <Link href={`/aiheet/${skill.id}`} className="block h-full">
-                  <Card className="h-full transition hover:-translate-y-0.5 hover:ring-primary/30">
+                  <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary">
                     <CardContent className="grid gap-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -177,40 +189,53 @@ export function HomeView() {
   );
 }
 
-function Welcome({ name, onRename }: { name: string; onRename: (name: string) => void }) {
+function Welcome({
+  name,
+  onRename,
+  signedIn,
+}: {
+  name: string;
+  onRename: (name: string) => void;
+  signedIn: boolean;
+}) {
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
       <div>
-        <p className="text-sm tracking-[0.16em] text-primary uppercase">Suomalaiselle oppilaalle</p>
+        <p className="text-sm tracking-[0.16em] text-primary uppercase">Ammattikoulun englanti</p>
         <h1 className="mt-3 max-w-xl font-serif text-4xl leading-tight tracking-tight text-balance sm:text-5xl">
-          Englannin kielioppi, joka harjoituttaa juuri sinun heikkoja kohtia.
+          Oman alan nimikkeet, sanat ja tilanteet englanniksi.
         </h1>
         <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
-          Artikkelit, he ja she, perfekti ja prepositiot eivät ole pieniä yksityiskohtia, jos äidinkieli on suomi.
-          Virke näyttää säännön, antaa tehtävän ja kertoo miksi vastaus on oikein. Lisäksi jokaisella ammattialalla
-          on omat työtilanteet: turvakäsky, asiakas, mittayksikkö ja raportti.
+          Virke on ammattikoulun opiskelijalle. Jokaisella alalla on tutkintonimikkeet, työpaikan sanat ja lauseet,
+          jotka pitää osata sanoa: turvakäsky, asiakas, mittayksikkö, raportti. Kielioppi harjoituttaa kohtia, joissa
+          suomi ja englanti eroavat.
         </p>
         <ul className="mt-6 grid gap-3">
           {[
-            ["Tasotesti asettaa lähtötason.", "Kaksitoista kysymystä, yksi jokaisesta aiheesta. Et aloita alkeista, jos perusteet ovat jo hallussa."],
-            ["Jokaisesta vastauksesta tulee selitys.", "Ei pelkkää oikein tai väärin. Näet säännön, suomalaisen kompastuskiven ja esimerkin."],
-            ["Edistyminen jää tähän selaimeen.", "Ei tiliä eikä kirjautumista. Sama selain muistaa, mitä olet jo osannut."],
+            ["Ammattinimikkeet englanniksi.", "Tutkintonimike tulee Opintopolun luettelosta. Jos työpaikalla sanotaan toisin, se on merkitty erikseen."],
+            ["Sanasto ja työtilanteet omalta alalta.", "Kypärä, tilaus, mittayksikkö ja raportti harjoitellaan sillä alalla, jota opiskelet."],
+            ["Oma tili tässä selaimessa.", "Edistyminen tallentuu tilillesi tälle koneelle. Varmuuskopio siirtää sen toiseen selaimeen. Mitään ei lähetetä palvelimelle."],
           ].map(([title, body]) => (
-            <li key={title} className="rounded-2xl bg-card/80 px-4 py-3 ring-1 ring-foreground/10">
+            <li key={title} className="border border-border border-l-4 border-l-signal bg-card px-4 py-3">
               <p className="font-medium">{title}</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
             </li>
           ))}
         </ul>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <Button size="lg" render={<Link href={practicePath("placement")} />}>
-            <GraduationCap data-icon="inline-start" />
-            Aloita tasotesti
-          </Button>
-          <Button size="lg" variant="outline" render={<Link href="/alat" />}>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button size="lg" render={<Link href="/alat" />}>
             <HardHat data-icon="inline-start" />
             Valitse alasi
           </Button>
+          <Button size="lg" variant="outline" render={<Link href={practicePath("placement")} />}>
+            <GraduationCap data-icon="inline-start" />
+            Aloita tasotesti
+          </Button>
+          {!signedIn && (
+            <Button size="lg" variant="secondary" render={<Link href="/tili" />}>
+              Luo tili
+            </Button>
+          )}
         </div>
         <form
           className="mt-6 max-w-sm"

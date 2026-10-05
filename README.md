@@ -1,10 +1,10 @@
 # Virke
 
-Adaptiivinen englannin kielioppitreeni suomalaiselle oppilaalle. Sivusto harjoituttaa kohtia, joissa suomi ja englanti eroavat: artikkelit, he/she, imperfekti ja perfekti, prepositiot, if-lauseet ja sanajärjestys.
+Ammattikoulun englanti suomeksi. Jokaisella alalla on tutkintonimikkeet, työn sanat ja työtilanteet. Kielioppiharjoitus pysyy erikseen ja painottaa kohtia, joissa suomi ja englanti eroavat.
 
-Jokaisesta vastauksesta tulee sääntö, selitys ja esimerkki. Oikea vastaus nostaa aiheen hallintaa. Väärä vastaus laskee sitä ja tuo myöhemmin helpomman jatkokysymyksen. Tasoarvio (A1–B2) perustuu siihen, millä vaikeustasolla vastaukset osuvat, ei pelkkään tehtävämäärään.
+Tutkintonimikkeiden englanti on tarkistettu Opintopolun tutkintonimikeluettelosta. Jos työpaikalla käytetään eri sanaa, se on merkitty ilman tutkintonimike-merkintää. Kieli on brittienglantia.
 
-Edistyminen tallentuu selaimeen. Tiliä ei ole.
+Tili ja edistyminen tallentuvat vain tähän selaimeen. Salasana tallennetaan tiivisteenä. Varmuuskopio (JSON) siirtää tilin toiseen koneeseen. Mitään ei lähetetä palvelimelle.
 
 ## Käynnistys
 
@@ -21,11 +21,12 @@ Testit:
 npm test
 ```
 
-## Näin treeni toimii
+## Näin harjoittelu toimii
 
-1. Tasotesti kysyy yhden tehtävän jokaisesta kahdestatoista aiheesta.
-2. Adaptiivinen kierros painottaa heikkoja aiheita ja valitsee vaikeuden sen mukaan, mitä olet jo osannut.
-3. Vihje näyttää säännön etukäteen, mutta oikea vastaus nostaa hallintaa vähemmän.
-4. Kertaus listaa tehtävät, joiden viimeisin vastaus on väärin.
+1. Valitse ala. Sivulla on nimikkeet, sanasto ja kolme harjoitusta: työtilanteet, nimikkeet ja sanat.
+2. Tasotesti kysyy yhden kielioppitehtävän jokaisesta kahdestatoista aiheesta.
+3. Adaptiivinen kierros painottaa heikkoja kieliopin aiheita. Alan tehtävät eivät muuta sitä tasoa.
+4. Jokaisesta vastauksesta tulee sääntö, selitys ja esimerkki.
+5. Luo tili, jos haluat pitää edistymisen omalla nimellä samalla koneella.
 
-Arvio ei ole virallinen kielikoe. Virke käyttää brittienglantia.
+Arvio ei ole virallinen kielikoe.

@@ -16,7 +16,8 @@ export function FieldsView() {
         <p className="text-sm tracking-[0.16em] text-primary uppercase">Työelämän englanti</p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-balance">Valitse alasi</h1>
         <p className="mt-3 leading-7 text-muted-foreground">
-          Jokaisella alalla on omat tilanteet: turvakäsky, asiakas, mittayksikkö, raportti. Tehtävät ovat niitä lauseita, jotka työssä pitää osata sanoa tai kirjoittaa.
+          Jokaisella alalla on tutkintonimikkeet, työn sanat ja tilanteet: turvakäsky, asiakas, mittayksikkö, raportti.
+          Harjoitus pysyy valitsemallasi alalla.
         </p>
       </div>
 
@@ -31,7 +32,7 @@ export function FieldsView() {
               return (
                 <li key={field.id}>
                   <Link href={`/alat/${field.id}`} className="block h-full">
-                    <Card className="h-full transition hover:-translate-y-0.5 hover:ring-primary/30">
+                    <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary">
                       <CardContent className="grid gap-2">
                         <div className="flex items-start justify-between gap-3">
                           <p className="font-medium">{field.title}</p>
@@ -39,7 +40,7 @@ export function FieldsView() {
                         </div>
                         <p className="text-sm leading-6 text-muted-foreground">{field.summary}</p>
                         <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                          {known && state ? `${percent(state.mastery)} % hallussa` : "6 työtilannetta"}
+                          {known && state ? `${percent(state.mastery)} % hallussa` : "Nimikkeet, sanasto ja työtilanteet"}
                         </p>
                       </CardContent>
                     </Card>

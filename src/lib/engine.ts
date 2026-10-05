@@ -1,3 +1,4 @@
+import { titleQuestionsFor, wordQuestionsFor } from "./questions/generated";
 import { questionsForField } from "./questions/fields";
 import { placementQuestions, QUESTIONS, getQuestion } from "./questions";
 import { getSkill } from "./skills";
@@ -378,7 +379,7 @@ function weightedPick<T>(items: { item: T; score: number }[], rng: () => number)
 export function sessionLength(mode: SessionMode, learner: Learner): number {
   if (mode.type === "placement") return placementQuestions().length;
   if (mode.type === "review") return Math.min(8, reviewQuestions(learner).length);
-  if (mode.type === "field") return questionsForField(mode.fieldId).length;
+  if (mode.type === "field") return fieldQuestions(mode.fieldId, mode.track ?? "work").length;
   return 8;
 }
 
@@ -398,7 +399,10 @@ export function buildSession(
   }
 
   if (mode.type === "field") {
-    return questionsForField(mode.fieldId).map((question) => ({ question, followUp: false }));
+    return fieldQuestions(mode.fieldId, mode.track ?? "work").map((question) => ({
+      question,
+      followUp: false,
+    }));
   }
 
   const count = sessionLength(mode, learner);
@@ -452,12 +456,19 @@ export function pickFollowUp(
   );
 }
 
+function fieldQuestions(fieldId: FieldId, track: "work" | "titles" | "words"): Question[] {
+  if (track === "titles") return titleQuestionsFor(fieldId);
+  if (track === "words") return wordQuestionsFor(fieldId);
+  return questionsForField(fieldId);
+}
+
 export function pickFieldFollowUp(
   fieldId: FieldId,
   difficulty: number,
   used: Set<string>,
+  track: "work" | "titles" | "words" = "work",
 ): Question | null {
-  const pool = questionsForField(fieldId).filter((question) => !used.has(question.id));
+  const pool = fieldQuestions(fieldId, track).filter((question) => !used.has(question.id));
   if (!pool.length) return null;
   const easier = pool.filter((question) => question.difficulty <= Math.max(1, difficulty - 1));
   return easier[0] ?? pool[0] ?? null;

@@ -2,6 +2,7 @@ import { patternQuestions } from "./questions/patterns";
 import { coreQuestions } from "./questions/core";
 import { structureQuestions } from "./questions/structures";
 import { FIELD_QUESTIONS } from "./questions/fields";
+import { TITLE_QUESTIONS, WORD_QUESTIONS } from "./questions/generated";
 import { SKILL_IDS, type Question, type SkillId } from "./types";
 
 export const QUESTIONS: Question[] = [
@@ -26,7 +27,10 @@ export const PLACEMENT_IDS = [
 ] as const;
 
 const byId = new Map(
-  [...QUESTIONS, ...FIELD_QUESTIONS].map((question) => [question.id, question]),
+  [...QUESTIONS, ...FIELD_QUESTIONS, ...TITLE_QUESTIONS, ...WORD_QUESTIONS].map((question) => [
+    question.id,
+    question,
+  ]),
 );
 
 export function getQuestion(id: string): Question | undefined {

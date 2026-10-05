@@ -1,32 +1,33 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Fraunces, Outfit } from "next/font/google";
+import { Atkinson_Hyperlegible, Bricolage_Grotesque } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { LearnerProvider } from "@/components/learner-provider";
 import "./globals.css";
 
-const outfit = Outfit({
+const outfit = Atkinson_Hyperlegible({
   subsets: ["latin"],
+  weight: ["400", "700"],
   variable: "--font-outfit",
 });
 
-const fraunces = Fraunces({
+const fraunces = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-fraunces",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Virke — englannin kielioppi",
+    default: "Virke — ammattienglanti",
     template: "%s · Virke",
   },
   description:
-    "Englannin kielioppi ja ammattialojen työtilanteet suomalaisille opiskelijoille. Tasotesti, selitys jokaiseen vastaukseen ja oma harjoitus jokaiselle alalle.",
+    "Ammattikoulun englanti: alan nimikkeet, sanasto, työtilanteet ja kielioppi. Edistyminen tallentuu omalle tilille tässä selaimessa.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f0e6",
+  themeColor: "#243352",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

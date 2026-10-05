@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/engine.test.ts"
+    "test": "tsx --test src/lib/engine.test.ts src/lib/accounts.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

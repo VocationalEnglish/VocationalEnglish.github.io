@@ -1,4 +1,4 @@
-import type { Cefr, Choice, Difficulty, FieldId, Question, SkillId } from "@/lib/types";
+import type { Cefr, Choice, Difficulty, FieldId, FieldTrack, Question, SkillId } from "@/lib/types";
 
 type TaskInput = {
   id: string;
@@ -17,6 +17,7 @@ type TaskInput = {
   trap?: string;
   accept?: string[];
   kind?: "mcq" | "cloze";
+  track?: FieldTrack;
 };
 
 export function task(input: TaskInput): Question {
@@ -38,6 +39,7 @@ export function task(input: TaskInput): Question {
     why: input.why,
     example: input.example,
     trap: input.trap,
+    track: input.track,
   };
 }
 

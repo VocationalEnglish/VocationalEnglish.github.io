@@ -46,6 +46,29 @@ export type FieldId = (typeof FIELD_IDS)[number];
 
 export type FieldGroup = "Tekniikka ja työmaa" | "Liikenne ja luonto" | "Palvelu ja ihmiset" | "Viestintä ja tarkkuus";
 
+export type FieldTrack = "work" | "titles" | "words";
+
+export type TermGroup = "ihmiset" | "välineet" | "paikat" | "paperit" | "turvallisuus" | "aineet" | "eläimet";
+
+export type Occupation = {
+  fi: string;
+  en: string;
+  does: string;
+  /** True when the English title is the Opintopolku qualification-title equivalent. */
+  official?: boolean;
+};
+
+export type Term = {
+  en: string;
+  fi: string;
+  group: TermGroup;
+};
+
+export type QualificationName = {
+  fi: string;
+  en: string;
+};
+
 export type Cefr = "A1" | "A2" | "B1" | "B2";
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
@@ -74,6 +97,7 @@ export type Question = {
   example: string;
   trap?: string;
   fieldId?: FieldId;
+  track?: FieldTrack;
 };
 
 export type Contrast = {
@@ -139,7 +163,7 @@ export type SessionMode =
   | { type: "placement" }
   | { type: "review" }
   | { type: "topic"; skillId: SkillId }
-  | { type: "field"; fieldId: FieldId };
+  | { type: "field"; fieldId: FieldId; track?: FieldTrack };
 
 export type Field = {
   id: FieldId;
