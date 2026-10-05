@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { HomeView } from "@/components/home-view";
 
 export const metadata: Metadata = {
-  title: "Virke — englannin kielioppi",
+  title: { absolute: "Virke — ammattienglanti" },
 };
 
 export default function Page() {
